@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="uz" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MATRIX VOX - O'zbekcha TTS & AI Chat</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Share Tech Mono', 'Fira Code', monospace;
+            background-color: #030703;
+            color: #00ff66;
+            text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
+        }
+        .matrix-border {
+            border: 1px solid rgba(0, 255, 102, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.1);
+        }
+        .matrix-border:hover {
+            border: 1px solid rgba(0, 255, 102, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.25);
+        }
+        .cyber-btn {
+            background: linear-gradient(135deg, #051a05 0%, #0c330c 100%);
+            border: 1px solid #00ff66;
+            transition: all 0.3s ease;
+            min-height: 44px; /* Optimal mobile touch target */
+        }
+        .cyber-btn:hover {
+            background: #00ff66;
+            color: #000;
+            box-shadow: 0 0 15px #00ff66;
+            transform: translateY(-1px);
+        }
+        .cyber-input {
+            background-color: rgba(3, 7, 3, 0.85);
+            border: 1px solid rgba(0, 255, 102, 0.4);
+            color: #00ff66;
+        }
+        .cyber-input:focus {
+            outline: none;
+            border-color: #00ff66;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020502;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0c330c;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ff66;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .glow-pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-full relative overflow-x-hidden flex flex-col pb-safe">
+
+    <!-- Background Matrix Rain Canvas -->
+    <canvas id="matrix-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 z-0"></canvas>
+
+    <!-- Header Section -->
+    <header class="relative z-10 border-b border-green-900 bg-black/80 backdrop-blur-md px-4 py-4 md:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="w-10 h-10 rounded-full bg-green-950 border border-green-500 flex items-center justify-center glow-pulse shrink-0">
+                    <i class="fa-solid fa-microchip text-green-400 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-widest text-green-400 flex items-center gap-2">
+                        MATRIX <span class="text-white">VOX</span> 
+                    </h1>
+                    <p class="text-[10px] md:text-xs text-green-600 tracking-wider uppercase">O'zbekcha Multivoice Ovozlashtirish & Kiber-Chat</p>
+                </div>
+            </div>
+            
+            <!-- Key Configuration API Panel -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-green-600">
+                        <i class="fa-solid fa-key text-xs"></i>
+                    </span>
+                    <input type="password" id="api-key" placeholder="Shaxsiy Kalit (Majburiy emas)" 
+                           class="w-full pl-8 pr-10 py-2 text-xs rounded cyber-input font-mono placeholder-green-800"
+                           title="API kalit talab etilmaydi, tizim avtomatik tarzda kalitsiz ishlaydi.">
+                    <button onclick="toggleKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-600 hover:text-green-400">
+                        <i id="key-eye" class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                </div>
+                <div class="text-[10px] text-green-500 bg-green-950/40 px-3 py-2 rounded border border-green-900 flex items-center gap-1.5 w-full sm:w-auto justify-center">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span> Live Status: Online
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT COLUMN: Matnni O'qish (TTS Engine) - lg:col-span-6 -->
+        <section class="lg:col-span-6 flex flex-col gap-6">
+            
+            <!-- TTS Input Panel -->
+            <div class="bg-black/85 p-4 md:p-5 rounded-lg matrix-border flex flex-col gap-4 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-900 via-green-400 to-green-900"></div>
+                
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm md:text-md uppercase font-bold tracking-wider text-green-400 flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high"></i> Matnni Ovozga Aylantirish
+                    </h2>
+                    <span class="text-[11px] text-green-600">O'zbek tilida</span>
+                </div>
+
+                <!-- Text Area Input -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-green-500">Ovozlashtirish kerak bo'lgan matnni kiriting:</label>
+                    <textarea id="tts-input" rows="5" 
+                              class="w-full p-3 rounded cyber-input font-mono text-xs md:text-sm leading-relaxed resize-none focus:ring-1 focus:ring-green-500"
+                              placeholder="Assalomu alaykum! Bu tizim har qanday o'zbekcha matnni turli ovozlarda yuqori sifat bilan o'qib berish imkoniyatiga ega. Sinab ko'rish uchun ushbu maydonga o'z matningizni yozing..."></textarea>
+                    <div class="flex justify-between text-[11px] text-green-600 px-1 mt-1">
+                        <span id="char-counter">0 / 2000 belgi</span>
+                        <button onclick="clearTtsText()" class="hover:text-green-400 transition-colors py-1">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Tozalash
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Voice Configurations Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Voice Selector -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-green-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-astronaut"></i> Ovoz Turi:
+                        </label>
+                        <select id="voice-select" class="w-full p-2.5 rounded cyber-input font-mono text-xs cursor-pointer">
+                            <option value="Autonoe" selected>👩 Malika (Sokin, yoqimli qiz ovozi)</option>
+                            <option value="Leda">👧 Nozima (Yorqin va muloyim qiz)</option>
+                            <option value="Kore">👨 Sardor (Dadil va jiddiy yigit ovozi)</option>
+                            <option value="Algenib">🧔 Shaxriyor (Ishonchli xonanda/erkak)</option>
+                            <option value="Fenrir">🧒 Samir (Quvnoq yosh bola ovozi)</option>
+                            <option value="Puck">👦 Kamron (Sho'x o'spirin ovozi)</option>
+                            <option value="Zephyr">⚡ Elbek (Yorqin, tezkor ovoz)</option>
+                            <option value="Gacrux">👵 Gulchehra Opa (Yoshi katta, bosiq)</option>
+                        </select>
+                    </div>
+
+                    <!-- Voice Style / Pitch Mode -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-green-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders"></i> Ovoz Xarakteri:
+                        </label>
+                        <select id="tone-style-select" class="w-full p-2.5 rounded cyber-input font-mono text-xs cursor-pointer">
+                            <option value="default" selected>Oddiy va Tabiiy nutq</option>
+                            <option value="cheerful">Quvnoq va Hayajonli</option>
+                            <option value="serious">Jiddiy va Rasmiy</option>
+                            <option value="whisper">Sirli va pichirlash</option>
+                            <option value="slow">Sekin va tushuntirish</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pitch and Speed adjustments -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mt-1">
+                    <div class="bg-black/40 p-2 rounded border border-green-950">
+                        <div class="flex justify-between mb-1.5">
+                            <span class="text-green-500">Nutq tezligi:</span>
+                            <span id="speed-val" class="text-green-300 font-bold">1.0x</span>
+                        </div>
+                        <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" 
+                               class="w-full accent-green-500 bg-green-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div class="bg-black/40 p-2 rounded border border-green-950">
+                        <div class="flex justify-between mb-1.5">
+                            <span class="text-green-500">Ovoz balandligi (Pitch):</span>
+                            <span id="pitch-val" class="text-green-300 font-bold">Normal</span>
+                        </div>
+                        <input type="range" id="speech-pitch" min="0.7" max="1.5" step="0.1" value="1.0" 
+                               class="w-full accent-green-500 bg-green-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Generate TTS Trigger -->
+                <button id="btn-generate-tts" onclick="generateTTS()" class="w-full rounded font-bold uppercase tracking-widest text-xs cyber-btn mt-2 shadow-[0_0_10px_rgba(0,255,102,0.15)]">
+                    <span id="tts-btn-text" class="flex items-center justify-center gap-2 py-3"><i class="fa-solid fa-music animate-bounce"></i> Ovozga Aylantirish</span>
+                    <span id="tts-btn-loading" class="hidden flex items-center justify-center gap-2 py-3">
+                        <i class="fa-solid fa-spinner animate-spin"></i> O'zbekcha Ovoz Yuklanmoqda...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Audio Output & Visualizer Panel -->
+            <div id="audio-panel" class="bg-black/85 p-4 md:p-5 rounded-lg matrix-border flex flex-col gap-4 relative">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm md:text-md uppercase font-bold tracking-wider text-green-400 flex items-center gap-2">
+                        <i class="fa-solid fa-wave-square"></i> Audio Pleyer va Vizualizator
+                    </h2>
+                    <span class="text-[10px] bg-green-950 text-green-400 px-2 py-1 rounded border border-green-900 font-mono" id="voice-badge">Malika Active</span>
+                </div>
+
+                <div class="relative w-full h-20 bg-black/95 border border-green-950 rounded flex items-center justify-center overflow-hidden">
+                    <canvas id="visualizer-canvas" class="w-full h-full absolute inset-0"></canvas>
+                    <div id="visualizer-placeholder" class="text-[11px] text-green-700 font-mono pointer-events-none z-10 text-center px-4">
+                        <i class="fa-solid fa-microphone-lines text-xl mb-1 block animate-pulse"></i>
+                        Audio yuklangandan so'ng kiber-to'lqinlar faollashadi
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <audio id="tts-audio-player" class="hidden" controls></audio>
+                    
+                    <div class="flex items-center gap-3">
+                        <button id="player-play-btn" onclick="togglePlay()" class="w-12 h-12 rounded-full border border-green-500 flex items-center justify-center hover:bg-green-500 hover:text-black transition-all shrink-0 cursor-pointer" disabled>
+                            <i id="play-icon" class="fa-solid fa-play text-lg ml-0.5"></i>
+                        </button>
+                        
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between text-[11px] text-green-600 mb-1">
+                                <span id="time-current">00:00</span>
+                                <span id="time-total">00:00</span>
+                            </div>
+                            <div class="relative w-full h-2 bg-green-950 rounded-full cursor-pointer overflow-hidden" onclick="seekAudio(event)">
+                                <div id="audio-progress" class="absolute top-0 left-0 h-full bg-green-400 w-0"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download & Save Buttons -->
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <button id="btn-download" onclick="downloadAudio()" class="py-2.5 rounded font-bold text-xs cyber-btn flex items-center justify-center gap-2" disabled>
+                            <i class="fa-solid fa-download"></i> Yuklab Olish
+                        </button>
+                        <button id="btn-save-archive" onclick="saveAudioToLibrary()" class="py-2.5 rounded font-bold text-xs border border-green-900 bg-green-950/20 hover:bg-green-950/40 text-green-400 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer" disabled>
+                            <i class="fa-solid fa-box-archive"></i> Saqlash
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Audio Library -->
+            <div class="bg-black/85 p-4 md:p-5 rounded-lg matrix-border flex flex-col gap-3 h-[200px]">
+                <h3 class="text-xs uppercase font-bold tracking-wider text-green-400 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open"></i> Saqlangan Ovozlar Kutubxonasi
+                </h3>
+                
+                <div id="library-list" class="flex flex-col gap-2 overflow-y-auto pr-1 flex-1 text-xs">
+                    <div class="text-center py-4 text-green-700 font-mono italic">
+                        Kutubxonada saqlangan ovozli fayllar hozircha yo'q.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: AI Chat Bo'limi - lg:col-span-6 -->
+        <section class="lg:col-span-6 flex flex-col bg-black/85 rounded-lg matrix-border relative overflow-hidden h-[550px] md:h-[650px] lg:h-auto min-h-[500px]">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-900 via-green-400 to-green-900"></div>
+            
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-green-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/40">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <div>
+                        <h2 class="text-xs md:text-sm font-bold uppercase tracking-wider text-green-400">Samimiy AI Suhbatdosh</h2>
+                        <p class="text-[9px] md:text-[10px] text-green-600">Siz bilan xuddi insonlardek samimiy suhbat</p>
+                    </div>
+                </div>
+                
+                <!-- Audio Auto Read Toggles -->
+                <div class="flex items-center gap-4 justify-between sm:justify-end border-t sm:border-t-0 border-green-950/40 pt-2 sm:pt-0">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="toggleAutoRead()">
+                        <span class="text-[10px] text-green-500 font-mono">Avto-Ovoz:</span>
+                        <div id="autoread-toggle" class="w-9 h-5 rounded-full bg-green-950 border border-green-800 p-0.5 transition-all relative">
+                            <div id="autoread-knob" class="w-3.5 h-3.5 rounded-full bg-green-500 absolute left-0.5 transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Stream Area -->
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 font-mono text-xs max-h-[calc(100%-140px)]">
+                
+                <!-- Introductory Bot Message -->
+                <div class="flex flex-col gap-1 max-w-[90%] md:max-w-[85%] self-start">
+                    <span class="text-[9px] text-green-600">YORDAMCHI</span>
+                    <div class="bg-green-950/20 border border-green-900/60 p-3 rounded-lg text-green-300 leading-relaxed relative">
+                        Assalomu alaykum! Men sizning samimiy va intellektual yordamchingizman. Siz bilan istalgan mavzuda xuddi yaqin do'stlardek, samimiy va insoniy tilda suhbatlashishga tayyorman. 
+                        Matn ko'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. 
+                        Javoblarim esa siz tanlagan yoqimli ovozda avtomatik ravishda o'qib beriladi.
+                        Bugun siz bilan qaysi mavzuda suhbatlashamiz?
+                        <div class="mt-2.5 flex gap-1 justify-end">
+                            <button onclick="readAloudText('Assalomu alaykum! Men sizning samimiy va intellektual yordamchingizman. Siz bilan istalgan mavzuda xuddi yaqin do\'stlardek, samimiy va insoniy tilda suhbatlashishga tayyorman. Matn ko\'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. Javoblarim esa siz tanlagan yoqimli ovozda avtomatik ravishda o\'qib beriladi. Bugun siz bilan qaysi mavzuda suhbatlashamiz?', this)" class="px-3 py-1.5 bg-green-900/40 hover:bg-green-500 hover:text-black rounded border border-green-800 transition-all text-[9px] flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-volume-high"></i> Tinglash
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Typing/Recording Indicator -->
+            <div id="typing-indicator" class="hidden px-4 py-2 text-[11px] font-mono text-green-500 animate-pulse flex items-center gap-1.5 bg-black/40">
+                <i class="fa-solid fa-terminal animate-spin"></i> Yordamchi javob tayyorlamoqda...
+            </div>
+                </div>
+                
+                <!-- Audio Auto Read Toggles -->
+                <div class="flex items-center gap-4 justify-between sm:justify-end border-t sm:border-t-0 border-green-950/40 pt-2 sm:pt-0">
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="toggleAutoRead()">
+                        <span class="text-[10px] text-green-500 font-mono">Avto-Ovoz:</span>
+                        <div id="autoread-toggle" class="w-9 h-5 rounded-full bg-green-950 border border-green-800 p-0.5 transition-all relative">
+                            <div id="autoread-knob" class="w-3.5 h-3.5 rounded-full bg-green-500 absolute left-0.5 transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Stream Area -->
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 font-mono text-xs max-h-[calc(100%-140px)]">
+                
+                <!-- Introductory Bot Message -->
+                <div class="flex flex-col gap-1 max-w-[90%] md:max-w-[85%] self-start">
+                    <span class="text-[9px] text-green-600">AI AGENT // CHAT_INIT</span>
+                    <div class="bg-green-950/20 border border-green-900/60 p-3 rounded-lg text-green-300 leading-relaxed relative">
+                        Salom! Men Matrix kiber-suhbatdoshiman. Siz bilan istalgan mavzuda ovozli va matnli suhbatlashishga tayyorman. 
+                        Matn ko'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. 
+                        Javoblarim esa siz tanlagan yoqimli kiber-ovozda avtomatik o'qib beriladi.
+                        Qaysi mavzuda gaplashamiz?
+                        <div class="mt-2.5 flex gap-1 justify-end">
+                            <button onclick="readAloudText('Salom! Men Matrix kiber-suhbatdoshiman. Siz bilan istalgan mavzuda ovozli va matnli suhbatlashishga tayyorman. Matn ko\'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. Javoblarim esa siz tanlagan yoqimli kiber-ovozda avtomatik o\'qib beriladi. Qaysi mavzuda gaplashamiz?', this)" class="px-3 py-1.5 bg-green-900/40 hover:bg-green-500 hover:text-black rounded border border-green-800 transition-all text-[9px] flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-volume-high"></i> Tinglash
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Typing/Recording Indicator -->
+            <div id="typing-indicator" class="hidden px-4 py-2 text-[11px] font-mono text-green-500 animate-pulse flex items-center gap-1.5 bg-black/40">
+                <i class="fa-solid fa-terminal animate-spin"></i> Matrix AI javob tayyorlamoqda...
+            </div>
+
+            <!-- Fast Prompts Suggestion -->
+            <div class="px-4 py-2 border-t border-green-950 bg-black/50 flex gap-2 overflow-x-auto whitespace-nowrap text-[10px] scrollbar-thin">
+                <button onclick="sendQuickPrompt('Menga qiziqarli hayotiy hikoya aytib ber.')" class="bg-green-950/30 border border-green-900/50 hover:border-green-400 px-2.5 py-1.5 rounded text-green-400 transition-all cursor-pointer">📖 Hikoya aytish</button>
+                <button onclick="sendQuickPrompt('O\'zbekiston tabiati haqida chiroyli she\'r yoz.')" class="bg-green-950/30 border border-green-900/50 hover:border-green-400 px-2.5 py-1.5 rounded text-green-400 transition-all cursor-pointer">✍️ She'r yozish</button>
+                <button onclick="sendQuickPrompt('Yaxshi kayfiyat ulashuvchi motivatsion fikr ayt.')" class="bg-green-950/30 border border-green-900/50 hover:border-green-400 px-2.5 py-1.5 rounded text-green-400 transition-all cursor-pointer">💪 Motivatsiya</button>
+            </div>
+
+            <!-- Chat Input Area with Mic Button -->
+            <div class="p-3 border-t border-green-950 bg-black/75 flex items-center gap-2 pb-safe">
+                <button id="btn-mic" onclick="toggleSpeechRecognition()" class="h-10 w-12 rounded border border-green-500 bg-green-950/40 hover:bg-green-500 hover:text-black transition-all flex items-center justify-center shrink-0 cursor-pointer" title="Ovoz orqali yozish (Mikrofon)">
+                    <i id="mic-icon" class="fa-solid fa-microphone text-sm"></i>
+                </button>
+                <input type="text" id="chat-input" placeholder="Savol yoki xabaringizni yozing..." 
+                       class="flex-1 h-10 px-3 rounded cyber-input text-xs font-mono min-w-0"
+                       onkeydown="handleChatEnter(event)">
+                <button onclick="sendMessage()" class="h-10 w-12 rounded border border-green-500 bg-green-950/40 hover:bg-green-500 hover:text-black transition-all flex items-center justify-center shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-green-950 bg-black/90 p-4 text-center text-[11px] text-green-700 font-mono mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>© 2026 MATRIX VOX. Sun'iy intellekt tomonidan boshqariladi.</div>
+            <div class="flex items-center gap-3">
+                <span class="hover:text-green-400 cursor-pointer"><i class="fa-solid fa-shield"></i> Cyber Security</span>
+                <span>|</span>
+                <span class="hover:text-green-400 cursor-pointer"><i class="fa-solid fa-code"></i> Gemini Live Audio API</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // API KEY CONFIGURATION (Empty for Canvas runtime auto-injection)
+        const apiKey = ""; 
+
+        let isAutoReadEnabled = true;
+        let generatedAudioUrl = null;
+        let generatedAudioBlob = null;
+        let audioLibrary = [];
+        
+        let recognition = null;
+        let isRecognizing = false;
+        
+        // Matrix Rain Visuals setup
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let cols = 0;
+        let ypos = [];
+        
+        function resizeMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            cols = Math.floor(canvas.width / 20) + 1;
+            ypos = Array(cols).fill(0);
+        }
+        
+        // Responsive listener to properly resize visualizer alongside matrix background
+        window.addEventListener('resize', () => {
+            resizeMatrix();
+            if (visualizerCanvas) {
+                visualizerCanvas.width = visualizerCanvas.parentElement.offsetWidth;
+                visualizerCanvas.height = visualizerCanvas.parentElement.offsetHeight;
+                drawVisualizerPlaceholder();
+            }
+        });
+        resizeMatrix();
+        
+        function matrixRain() {
+            ctx.fillStyle = 'rgba(3, 7, 3, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff66';
+            ctx.font = '15px monospace';
+            
+            ypos.forEach((y, ind) => {
+                const text = String.fromCharCode(Math.random() * 128);
+                const x = ind * 20;
+                ctx.fillText(text, x, y);
+                if (y > 100 + Math.random() * 10000) {
+                    ypos[ind] = 0;
+                } else {
+                    ypos[ind] = y + 20;
+                }
+            });
+        }
+        
+        setInterval(matrixRain, 50);
+
+        // Character counter for input
+        const ttsInput = document.getElementById('tts-input');
+        const charCounter = document.getElementById('char-counter');
+        ttsInput.addEventListener('input', () => {
+            const len = ttsInput.value.length;
+            charCounter.innerText = `${len} / 2000 belgi`;
+            if (len > 2000) {
+                ttsInput.value = ttsInput.value.substring(0, 2000);
+            }
+        });
+
+        // Initialize Library from localStorage & init speech recognition
+        window.addEventListener('load', () => {
+            const savedLib = localStorage.getItem('matrix_vox_library');
+            if (savedLib) {
+                try {
+                    audioLibrary = JSON.parse(savedLib);
+                    updateLibraryUI();
+                } catch(e) {
+                    console.error("Kutubxonani yuklashda xatolik:", e);
+                }
+            }
+            initAudioVisualizer();
+            initSpeechRecognition();
+        });
+
+        function toggleKeyVisibility() {
+            const keyInput = document.getElementById('api-key');
+            const keyEye = document.getElementById('key-eye');
+            if (keyInput.type === 'password') {
+                keyInput.type = 'text';
+                keyEye.className = 'fa-solid fa-eye-slash text-xs';
+            } else {
+                keyInput.type = 'password';
+                keyEye.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+
+        function clearTtsText() {
+            ttsInput.value = '';
+            charCounter.innerText = '0 / 2000 belgi';
+        }
+
+        function toggleAutoRead() {
+            isAutoReadEnabled = !isAutoReadEnabled;
+            const toggle = document.getElementById('autoread-toggle');
+            const knob = document.getElementById('autoread-knob');
+            if (isAutoReadEnabled) {
+                toggle.classList.remove('bg-red-950', 'border-red-900');
+                toggle.classList.add('bg-green-950', 'border-green-800');
+                knob.style.left = '1.25rem';
+                knob.style.backgroundColor = '#00ff66';
+            } else {
+                toggle.classList.remove('bg-green-950', 'border-green-800');
+                toggle.classList.add('bg-red-950', 'border-red-900');
+                knob.style.left = '0.125rem';
+                knob.style.backgroundColor = '#ef4444';
+            }
+        }
+
+        // Control listeners for slider labels
+        const speedInput = document.getElementById('speech-speed');
+        const speedValLabel = document.getElementById('speed-val');
+        speedInput.addEventListener('input', () => {
+            speedValLabel.innerText = `${parseFloat(speedInput.value).toFixed(1)}x`;
+        });
+
+        const pitchInput = document.getElementById('speech-pitch');
+        const pitchValLabel = document.getElementById('pitch-val');
+        pitchInput.addEventListener('input', () => {
+            const pitch = parseFloat(pitchInput.value);
+            if (pitch < 0.9) pitchValLabel.innerText = "Past (Pastroq)";
+            else if (pitch > 1.1) pitchValLabel.innerText = "Baland (Ingichka)";
+            else pitchValLabel.innerText = "Normal";
+        });
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16Array, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16Array.length * 2);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* file length */
+            view.setUint32(4, 36 + pcm16Array.length * 2, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (PCM) */
+            view.setUint16(20, 1, true);
+            /* channel count (mono) */
+            view.setUint16(22, 1, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sample rate * block align) */
+            view.setUint32(28, sampleRate * 2, true);
+            /* block align (channel count * bytes per sample) */
+            view.setUint16(32, 2, true);
+            /* bits per sample */
+            view.setUint16(34, 16, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, pcm16Array.length * 2, true);
+
+            // Write PCM audio data
+            for (let i = 0; i < pcm16Array.length; i++) {
+                view.setInt16(44 + i * 2, pcm16Array[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function getApiUrl(modelName) {
+            const manualKey = document.getElementById('api-key').value.trim();
+            // If manual key is empty, fallback to the auto-injected global apiKey parameter
+            const activeKey = manualKey || apiKey;
+            // The "?key=" parameter is strictly required for the platform sandbox to inject the active session key
+            return `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+        }
+
+        function stopCurrentAudio() {
+            const player = document.getElementById('tts-audio-player');
+            if (player) {
+                player.pause();
+                player.currentTime = 0;
+            }
+            updatePlayButtonState(false);
+        }
+
+        async function generateTTS(overrideText = null, overrideVoice = null) {
+            stopCurrentAudio();
+            
+            const textToSpeech = overrideText || ttsInput.value.trim();
+            if (!textToSpeech) {
+                showModalAlert("Matn kiritilmadi!", "Iltimos, avval ovozlashtirish uchun matn kiriting.");
+                return;
+            }
+
+            const voiceName = overrideVoice || document.getElementById('voice-select').value;
+            const style = document.getElementById('tone-style-select').value;
+            const speed = parseFloat(speedInput.value);
+            const pitch = parseFloat(pitchInput.value);
+
+            // Setup loading UI
+            document.getElementById('btn-generate-tts').disabled = true;
+            document.getElementById('tts-btn-text').classList.add('hidden');
+            document.getElementById('tts-btn-loading').classList.remove('hidden');
+
+            let speakDirective = `Say in Uzbek language: ${textToSpeech}`;
+            if (style === 'cheerful') {
+                speakDirective = `Say happily and cheerfully in Uzbek: ${textToSpeech}`;
+            } else if (style === 'serious') {
+                speakDirective = `Say in a serious, professional, and clear formal Uzbek news tone: ${textToSpeech}`;
+            } else if (style === 'whisper') {
+                speakDirective = `Say in a spooky, low volume whisper voice in Uzbek: ${textToSpeech}`;
+            } else if (style === 'slow') {
+                speakDirective = `Say extremely slowly and carefully in Uzbek: ${textToSpeech}`;
+            }
+
+            if (speed > 1.3) {
+                speakDirective = `Say very fast: ` + speakDirective;
+            } else if (speed < 0.8) {
+                speakDirective = `Say slowly: ` + speakDirective;
+            }
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: speakDirective }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: voiceName }
+                        }
+                    }
+                }
+            };
+
+            let attempts = 0;
+            let delay = 1000;
+            const maxAttempts = 3;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(getApiUrl("gemini-2.5-flash-preview-tts"), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server xatosi: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        let sampleRate = 24000; // default for Gemini
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        if (rateMatch) {
+                            sampleRate = parseInt(rateMatch[1], 10);
+                        }
+
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        // Safe array buffer length mapping to avoid RangeErrors on odd-length boundaries
+                        const pcm16 = new Int16Array(pcmData, 0, Math.floor(pcmData.byteLength / 2));
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+
+                        if (generatedAudioUrl) {
+                            URL.revokeObjectURL(generatedAudioUrl);
+                        }
+
+                        generatedAudioBlob = wavBlob;
+                        generatedAudioUrl = URL.createObjectURL(wavBlob);
+                        
+                        const player = document.getElementById('tts-audio-player');
+                        player.src = generatedAudioUrl;
+                        player.load();
+                        
+                        document.getElementById('player-play-btn').disabled = false;
+                        document.getElementById('btn-download').disabled = false;
+                        document.getElementById('btn-save-archive').disabled = false;
+                        
+                        const voiceDisplayNames = {
+                            'Autonoe': 'Malika',
+                            'Leda': 'Nozima',
+                            'Kore': 'Sardor',
+                            'Algenib': 'Shaxriyor',
+                            'Fenrir': 'Samir',
+                            'Puck': 'Kamron',
+                            'Zephyr': 'Elbek',
+                            'Gacrux': 'Gulchehra Opa'
+                        };
+                        document.getElementById('voice-badge').innerText = `${voiceDisplayNames[voiceName] || voiceName} Active`;
+                        document.getElementById('visualizer-placeholder').classList.add('hidden');
+
+                        player.play();
+                        updatePlayButtonState(true);
+
+                        break; // Success exit loop
+                    } else {
+                        throw new Error("Kutilmagan audio formati");
+                    }
+
+                } catch (error) {
+                    attempts++;
+                    console.warn(`Xatolik yuz berdi (${attempts}/${maxAttempts}). Qaytadan urinish...`, error);
+                    if (attempts >= maxAttempts) {
+                        showModalAlert("Ulanish xatoligi", "Sun'iy intellekt ovozlash serveriga ulana olmadi. Tarmoq sozlamalarini tekshiring.");
+                    } else {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                }
+            }
+
+            document.getElementById('btn-generate-tts').disabled = false;
+            document.getElementById('tts-btn-text').classList.remove('hidden');
+            document.getElementById('tts-btn-loading').classList.add('hidden');
+        }
+
+        const audioPlayer = document.getElementById('tts-audio-player');
+        const playIcon = document.getElementById('play-icon');
+        const progressIndicator = document.getElementById('audio-progress');
+        const currentLabel = document.getElementById('time-current');
+        const totalLabel = document.getElementById('time-total');
+
+        function updatePlayButtonState(isPlaying) {
+            if (isPlaying) {
+                playIcon.className = "fa-solid fa-pause text-lg";
+            } else {
+                playIcon.className = "fa-solid fa-play text-lg ml-0.5";
+            }
+        }
+
+        function togglePlay() {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                updatePlayButtonState(true);
+            } else {
+                audioPlayer.pause();
+                updatePlayButtonState(false);
+            }
+        }
+
+        audioPlayer.addEventListener('play', () => updatePlayButtonState(true));
+        audioPlayer.addEventListener('pause', () => updatePlayButtonState(false));
+        audioPlayer.addEventListener('ended', () => updatePlayButtonState(false));
+
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = Math.floor(secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressIndicator.style.width = `${percent}%`;
+                currentLabel.innerText = formatTime(audioPlayer.currentTime);
+            }
+        });
+
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            totalLabel.innerText = formatTime(audioPlayer.duration);
+        });
+
+        function seekAudio(event) {
+            if (!audioPlayer.duration) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percent = clickX / rect.width;
+            audioPlayer.currentTime = percent * audioPlayer.duration;
+        }
+
+        function downloadAudio() {
+            if (!generatedAudioUrl) return;
+            const link = document.createElement('a');
+            link.href = generatedAudioUrl;
+            link.download = `matrix-vox-${Date.now()}.wav`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function saveAudioToLibrary() {
+            if (!generatedAudioBlob) return;
+            const textSnippet = ttsInput.value.substring(0, 30) + (ttsInput.value.length > 30 ? '...' : '');
+            const reader = new FileReader();
+            reader.readAsDataURL(generatedAudioBlob); 
+            reader.onloadend = function() {
+                const base64Wav = reader.result;
+                const newItem = {
+                    id: Date.now(),
+                    text: textSnippet,
+                    voice: document.getElementById('voice-select').value,
+                    audioData: base64Wav
+                };
+                audioLibrary.unshift(newItem);
+                
+                if (audioLibrary.length > 10) {
+                    audioLibrary.pop();
+                }
+
+                localStorage.setItem('matrix_vox_library', JSON.stringify(audioLibrary));
+                updateLibraryUI();
+                showModalAlert("Saqlandi!", "Ovozli fayl lokal kutubxonaga muvaffaqiyatli saqlandi.");
+            };
+        }
+
+        function updateLibraryUI() {
+            const libraryList = document.getElementById('library-list');
+            if (audioLibrary.length === 0) {
+                libraryList.innerHTML = `<div class="text-center py-4 text-green-700 font-mono italic">Kutubxonada saqlangan ovozli fayllar hozircha yo'q.</div>`;
+                return;
+            }
+
+            libraryList.innerHTML = '';
+            audioLibrary.forEach(item => {
+                const voiceTags = {
+                    'Autonoe': 'Malika', 'Leda': 'Nozima', 'Kore': 'Sardor',
+                    'Algenib': 'Shaxriyor', 'Fenrir': 'Samir', 'Puck': 'Kamron',
+                    'Zephyr': 'Elbek', 'Gacrux': 'Gulchehra Opa'
+                };
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-green-950/20 border border-green-900/60 p-2 rounded flex items-center justify-between gap-2';
+                itemDiv.innerHTML = `
+                    <div class="flex-1 truncate">
+                        <p class="font-bold text-green-400 truncate text-xs">${item.text}</p>
+                        <p class="text-[9px] text-green-600">Ovoz: ${voiceTags[item.voice] || item.voice}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="playLibraryItem(${item.id})" class="h-8 w-8 bg-green-900/30 hover:bg-green-400 hover:text-black rounded text-[10px] transition-all flex items-center justify-center cursor-pointer">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button onclick="deleteLibraryItem(${item.id})" class="h-8 w-8 bg-red-950/30 text-red-400 hover:bg-red-500 hover:text-black rounded text-[10px] transition-all flex items-center justify-center cursor-pointer">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                libraryList.appendChild(itemDiv);
+            });
+        }
+
+        function playLibraryItem(id) {
+            const item = audioLibrary.find(i => i.id === id);
+            if (!item) return;
+            
+            if (generatedAudioUrl) URL.revokeObjectURL(generatedAudioUrl);
+            
+            const base64Data = item.audioData.split(',')[1];
+            const arrayBuffer = base64ToArrayBuffer(base64Data);
+            const blob = new Blob([arrayBuffer], {type: 'audio/wav'});
+            
+            generatedAudioBlob = blob;
+            generatedAudioUrl = URL.createObjectURL(blob);
+            
+            const player = document.getElementById('tts-audio-player');
+            player.src = generatedAudioUrl;
+            player.load();
+            
+            document.getElementById('player-play-btn').disabled = false;
+            document.getElementById('btn-download').disabled = false;
+            document.getElementById('btn-save-archive').disabled = false;
+            document.getElementById('visualizer-placeholder').classList.add('hidden');
+            
+            player.play();
+            updatePlayButtonState(true);
+        }
+
+        function deleteLibraryItem(id) {
+            audioLibrary = audioLibrary.filter(i => i.id !== id);
+            localStorage.setItem('matrix_vox_library', JSON.stringify(audioLibrary));
+            updateLibraryUI();
+        }
+
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'uz-UZ';
+
+                recognition.onstart = () => {
+                    isRecognizing = true;
+                    document.getElementById('mic-icon').className = "fa-solid fa-microphone text-red-500 animate-pulse";
+                    document.getElementById('chat-input').placeholder = "Sizni eshitayapman, gapiring...";
+                };
+
+                recognition.onend = () => {
+                    isRecognizing = false;
+                    document.getElementById('mic-icon').className = "fa-solid fa-microphone text-sm";
+                    document.getElementById('chat-input').placeholder = "Savol yoki xabaringizni yozing...";
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('chat-input').value = transcript;
+                    // Automatically send once speech completes
+                    sendMessage();
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech recognition error:", event.error);
+                    isRecognizing = false;
+                    document.getElementById('mic-icon').className = "fa-solid fa-microphone text-sm";
+                };
+            }
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) {
+                initSpeechRecognition();
+            }
+            if (!recognition) {
+                showModalAlert("Qo'llab-quvvatlanmaydi", "Sizning brauzeringiz Speech-to-Text xizmatini qo'llab-quvvatlamaydi. Iltimos Google Chrome yoki Edge brauzeridan foydalaning.");
+                return;
+            }
+
+            if (isRecognizing) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        function handleChatEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendQuickPrompt(text) {
+            chatInput.value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const userMsg = chatInput.value.trim();
+            if (!userMsg) return;
+
+            // Stop any playing audio instantly
+            stopCurrentAudio();
+
+            appendChatMessage("SIZ", userMsg, "self-end text-green-400 bg-green-950/20 border border-green-500/30");
+            chatInput.value = '';
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            typingIndicator.classList.remove('hidden');
+
+            const systemPrompt = "Siz o'zbek tilida gapiruvchi juda samimiy, muloyim, dono, ochiqko'ngil va tarbiyali insoniy yordamchisiz (AI). Foydalanuvchi bilan Matrix, kiber, kiber-kosmik, robot yoki temir-kodlar haqidagi rollarsiz, xuddi oddiy madaniyatli, iliq va jonli inson kabi o'zaro hurmat va do'stona munosabatda muloqot qiling. Gaplaringiz va mulohazalaringiz tabiiy bo'lsin, sun'iy yoki robot kabi quruq iboralar ishlatmang. Savollarga to'liq va odamlardek his-tuyg'u bilan, tushunarli, ravon o'zbek tilida javob bering, chunki javoblaringiz ovoz chiqarib o'qib beriladi.";
+
+            try {
+                const response = await fetch(getApiUrl("gemini-3-flash-preview"), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userMsg }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                if (!response.ok) throw new Error("AI Chat javob bera olmadi");
+
+                const result = await response.json();
+                const aiResponseText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (aiResponseText) {
+                    appendChatMessage("YORDAMCHI", aiResponseText, "self-start text-green-300 bg-black/50 border border-green-900/60", true);
+                } else {
+                    throw new Error("Xato javob shakli");
+                }
+
+            } catch (err) {
+                console.error(err);
+                appendChatMessage("TIZIM XATOLIGI", "Server bilan ulanishda muammo yuz berdi. Tarmoqni tekshiring.", "self-start text-red-400 bg-red-950/20 border border-red-900/40");
+            } finally {
+                typingIndicator.classList.add('hidden');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function appendChatMessage(sender, text, cssClasses, includeVoiceBtn = false) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex flex-col gap-1 max-w-[85%] ${cssClasses} p-3 rounded-lg leading-relaxed relative`;
+            
+            const header = document.createElement('span');
+            header.className = `text-[9px] text-green-600 ${sender === 'SIZ' ? 'text-right' : ''}`;
+            header.innerText = sender;
+            
+            const body = document.createElement('div');
+            body.innerText = text;
+            
+            msgDiv.appendChild(body);
+
+            if (includeVoiceBtn) {
+                const controlDiv = document.createElement('div');
+                controlDiv.className = "mt-2 flex gap-2 justify-end";
+                
+                const btn = document.createElement('button');
+                btn.className = "px-3 py-1.5 bg-green-900/40 hover:bg-green-500 hover:text-black rounded border border-green-800 transition-all text-[9px] flex items-center gap-1 cursor-pointer";
+                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Tinglash`;
+                btn.onclick = () => readAloudText(text, btn);
+                
+                controlDiv.appendChild(btn);
+                msgDiv.appendChild(controlDiv);
+                
+                if (isAutoReadEnabled) {
+                    setTimeout(() => {
+                        readAloudText(text, btn);
+                    }, 150);
+                }
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex flex-col ${sender === 'SIZ' ? 'items-end' : 'items-start'} gap-1`;
+            wrapper.appendChild(header);
+            wrapper.appendChild(msgDiv);
+
+            chatMessages.appendChild(wrapper);
+        }
+
+        async function readAloudText(text, buttonElement) {
+            const originalHtml = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> O'qilmoqda...`;
+
+            const activeVoice = document.getElementById('voice-select').value;
+            
+            // Sync main input text
+            ttsInput.value = text;
+            charCounter.innerText = `${text.length} / 2000 belgi`;
+            
+            await generateTTS(text, activeVoice);
+
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = originalHtml;
+        }
+
+        let visualizerCanvas, visualizerCtx, animationFrameId;
+        
+        function initAudioVisualizer() {
+            visualizerCanvas = document.getElementById('visualizer-canvas');
+            visualizerCtx = visualizerCanvas.getContext('2d');
+            
+            visualizerCanvas.width = visualizerCanvas.parentElement.offsetWidth;
+            visualizerCanvas.height = visualizerCanvas.parentElement.offsetHeight;
+            
+            drawVisualizerPlaceholder();
+        }
+
+        function drawVisualizerPlaceholder() {
+            visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+            visualizerCtx.strokeStyle = 'rgba(0, 255, 102, 0.15)';
+            visualizerCtx.lineWidth = 1;
+            
+            const midY = visualizerCanvas.height / 2;
+            visualizerCtx.beginPath();
+            visualizerCtx.moveTo(0, midY);
+            visualizerCtx.lineTo(visualizerCanvas.width, midY);
+            visualizerCtx.stroke();
+            
+            for (let i = 0; i < visualizerCanvas.width; i += 15) {
+                const noise = (Math.sin(i * 0.05) * 5) * (Math.random() * 0.2 + 0.8);
+                visualizerCtx.fillStyle = 'rgba(0, 255, 102, 0.3)';
+                visualizerCtx.fillRect(i, midY + noise - 1, 2, 2);
+            }
+        }
+
+        audioPlayer.addEventListener('play', () => {
+            visualizeActiveWave();
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            cancelAnimationFrame(animationFrameId);
+            drawVisualizerPlaceholder();
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            cancelAnimationFrame(animationFrameId);
+            drawVisualizerPlaceholder();
+        });
+
+        function visualizeActiveWave() {
+            cancelAnimationFrame(animationFrameId);
+            
+            const draw = () => {
+                animationFrameId = requestAnimationFrame(draw);
+                
+                visualizerCtx.fillStyle = 'rgba(3, 7, 3, 0.25)';
+                visualizerCtx.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+                
+                const midY = visualizerCanvas.height / 2;
+                visualizerCtx.strokeStyle = '#00ff66';
+                visualizerCtx.lineWidth = 2;
+                visualizerCtx.beginPath();
+                
+                const time = Date.now() * 0.009;
+                for (let x = 0; x < visualizerCanvas.width; x++) {
+                    const amp = Math.sin(time + x * 0.03) * 15 + Math.cos(time * 0.5 + x * 0.01) * 10;
+                    const windowFactor = Math.sin((x / visualizerCanvas.width) * Math.PI);
+                    const y = midY + amp * windowFactor;
+                    
+                    if (x === 0) {
+                        visualizerCtx.moveTo(x, y);
+                    } else {
+                        visualizerCtx.lineTo(x, y);
+                    }
+                }
+                visualizerCtx.stroke();
+                
+                if (Math.random() < 0.15) {
+                    visualizerCtx.fillStyle = 'rgba(0, 255, 102, 0.7)';
+                    visualizerCtx.font = '10px monospace';
+                    visualizerCtx.fillText(
+                        Math.random() > 0.5 ? "1" : "0", 
+                        Math.random() * visualizerCanvas.width, 
+                        Math.random() * visualizerCanvas.height
+                    );
+                }
+            };
+            draw();
+        }
+
+        function showModalAlert(title, message) {
+            const oldModal = document.getElementById('cyber-modal');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'cyber-modal';
+            modal.className = 'fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 backdrop-blur-sm';
+            modal.innerHTML = `
+                <div class="bg-black border-2 border-green-500 rounded-lg max-w-sm w-full p-5 flex flex-col gap-4 relative shadow-[0_0_30px_rgba(0,255,102,0.3)]">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+                    <div class="flex items-center gap-2 text-green-400 font-bold uppercase tracking-widest text-sm">
+                        <i class="fa-solid fa-triangle-exclamation animate-pulse"></i> ${title}
+                    </div>
+                    <p class="text-xs text-green-300 font-mono leading-relaxed">${message}</p>
+                    <button onclick="document.getElementById('cyber-modal').remove()" class="py-2 rounded font-bold uppercase tracking-widest text-xs cyber-btn mt-2 cursor-pointer">
+                        Tushunarli (OK)
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>
