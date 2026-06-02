@@ -2,7 +2,7 @@
 <html lang="uz" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MATRIX VOX - O'zbekcha TTS & AI Chat</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,7 @@
             background-color: #030703;
             color: #00ff66;
             text-shadow: 0 0 5px rgba(0, 255, 102, 0.4);
+            -webkit-tap-highlight-color: transparent;
         }
         .matrix-border {
             border: 1px solid rgba(0, 255, 102, 0.3);
@@ -29,27 +30,34 @@
             background: linear-gradient(135deg, #051a05 0%, #0c330c 100%);
             border: 1px solid #00ff66;
             transition: all 0.3s ease;
-            min-height: 44px; /* Optimal mobile touch target */
+            min-height: 48px; /* High accessibility mobile touch target */
         }
-        .cyber-btn:hover {
+        .cyber-btn:hover:not(:disabled) {
             background: #00ff66;
             color: #000;
             box-shadow: 0 0 15px #00ff66;
             transform: translateY(-1px);
         }
+        .cyber-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-color: #0c330c;
+        }
         .cyber-input {
             background-color: rgba(3, 7, 3, 0.85);
             border: 1px solid rgba(0, 255, 102, 0.4);
             color: #00ff66;
+            min-height: 44px;
         }
         .cyber-input:focus {
             outline: none;
             border-color: #00ff66;
             box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
         }
-        /* Custom scrollbar */
+        /* Custom scrollbar optimized for touch devices */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
             background: #020502;
@@ -70,7 +78,7 @@
         }
     </style>
 </head>
-<body class="min-h-full relative overflow-x-hidden flex flex-col pb-safe">
+<body class="min-h-screen relative overflow-x-hidden flex flex-col pb-safe">
 
     <!-- Background Matrix Rain Canvas -->
     <canvas id="matrix-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-20 z-0"></canvas>
@@ -98,7 +106,7 @@
                     </span>
                     <input type="password" id="api-key" placeholder="Shaxsiy Kalit (Majburiy emas)" 
                            class="w-full pl-8 pr-10 py-2 text-xs rounded cyber-input font-mono placeholder-green-800"
-                           title="API kalit talab etilmaydi, tizim avtomatik tarzda kalitsiz ishlaydi.">
+                           title="API kalit kiritmasangiz ham tizim avtomatik ishlaydi.">
                     <button onclick="toggleKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-600 hover:text-green-400">
                         <i id="key-eye" class="fa-solid fa-eye text-xs"></i>
                     </button>
@@ -222,7 +230,7 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <audio id="tts-audio-player" class="hidden" controls></audio>
+                    <audio id="tts-audio-player" class="hidden" controls playsinline></audio>
                     
                     <div class="flex items-center gap-3">
                         <button id="player-play-btn" onclick="togglePlay()" class="w-12 h-12 rounded-full border border-green-500 flex items-center justify-center hover:bg-green-500 hover:text-black transition-all shrink-0 cursor-pointer" disabled>
@@ -316,44 +324,6 @@
             <!-- Typing/Recording Indicator -->
             <div id="typing-indicator" class="hidden px-4 py-2 text-[11px] font-mono text-green-500 animate-pulse flex items-center gap-1.5 bg-black/40">
                 <i class="fa-solid fa-terminal animate-spin"></i> Yordamchi javob tayyorlamoqda...
-            </div>
-                </div>
-                
-                <!-- Audio Auto Read Toggles -->
-                <div class="flex items-center gap-4 justify-between sm:justify-end border-t sm:border-t-0 border-green-950/40 pt-2 sm:pt-0">
-                    <div class="flex items-center gap-2 cursor-pointer" onclick="toggleAutoRead()">
-                        <span class="text-[10px] text-green-500 font-mono">Avto-Ovoz:</span>
-                        <div id="autoread-toggle" class="w-9 h-5 rounded-full bg-green-950 border border-green-800 p-0.5 transition-all relative">
-                            <div id="autoread-knob" class="w-3.5 h-3.5 rounded-full bg-green-500 absolute left-0.5 transition-all"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Messages Stream Area -->
-            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-4 font-mono text-xs max-h-[calc(100%-140px)]">
-                
-                <!-- Introductory Bot Message -->
-                <div class="flex flex-col gap-1 max-w-[90%] md:max-w-[85%] self-start">
-                    <span class="text-[9px] text-green-600">AI AGENT // CHAT_INIT</span>
-                    <div class="bg-green-950/20 border border-green-900/60 p-3 rounded-lg text-green-300 leading-relaxed relative">
-                        Salom! Men Matrix kiber-suhbatdoshiman. Siz bilan istalgan mavzuda ovozli va matnli suhbatlashishga tayyorman. 
-                        Matn ko'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. 
-                        Javoblarim esa siz tanlagan yoqimli kiber-ovozda avtomatik o'qib beriladi.
-                        Qaysi mavzuda gaplashamiz?
-                        <div class="mt-2.5 flex gap-1 justify-end">
-                            <button onclick="readAloudText('Salom! Men Matrix kiber-suhbatdoshiman. Siz bilan istalgan mavzuda ovozli va matnli suhbatlashishga tayyorman. Matn ko\'rinishida yozishingiz yoki mikrofon tugmasini bosib gapirishingiz mumkin. Javoblarim esa siz tanlagan yoqimli kiber-ovozda avtomatik o\'qib beriladi. Qaysi mavzuda gaplashamiz?', this)" class="px-3 py-1.5 bg-green-900/40 hover:bg-green-500 hover:text-black rounded border border-green-800 transition-all text-[9px] flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-volume-high"></i> Tinglash
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Typing/Recording Indicator -->
-            <div id="typing-indicator" class="hidden px-4 py-2 text-[11px] font-mono text-green-500 animate-pulse flex items-center gap-1.5 bg-black/40">
-                <i class="fa-solid fa-terminal animate-spin"></i> Matrix AI javob tayyorlamoqda...
             </div>
 
             <!-- Fast Prompts Suggestion -->
@@ -461,6 +431,25 @@
             }
         });
 
+        // Robust audio element unlocking for iOS Safari and Mobile Chrome
+        function unlockAudio() {
+            const player = document.getElementById('tts-audio-player');
+            if (player) {
+                // Play a tiny base64 encoded silent WAV file to instantly unlock iOS media pipeline
+                const silentWav = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+                player.src = silentWav;
+                const playPromise = player.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        player.pause();
+                        console.log("Audio player pre-unlocked successfully.");
+                    }).catch(e => {
+                        console.log("Audio context pre-unlock check:", e);
+                    });
+                }
+            }
+        }
+
         // Initialize Library from localStorage & init speech recognition
         window.addEventListener('load', () => {
             const savedLib = localStorage.getItem('matrix_vox_library');
@@ -474,6 +463,15 @@
             }
             initAudioVisualizer();
             initSpeechRecognition();
+
+            // Unlock audio context on first screen tap on mobile devices
+            const autoUnlock = () => {
+                unlockAudio();
+                document.removeEventListener('click', autoUnlock);
+                document.removeEventListener('touchstart', autoUnlock);
+            };
+            document.addEventListener('click', autoUnlock);
+            document.addEventListener('touchstart', autoUnlock);
         });
 
         function toggleKeyVisibility() {
@@ -533,6 +531,13 @@
         }
 
         function base64ToArrayBuffer(base64) {
+            // Clean up base64 padding to avoid DOMException on certain browsers
+            base64 = base64.trim();
+            const pad = base64.length % 4;
+            if (pad === 2) base64 += '==';
+            else if (pad === 3) base64 += '=';
+            base64 = base64.replace(/\s/g, '');
+
             const binaryString = atob(base64);
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
@@ -581,11 +586,33 @@
             return new Blob([buffer], { type: 'audio/wav' });
         }
 
+        // Explaining technical mistakes explicitly in polite, clear Uzbek
+        function translateErrorToUzbek(err, context = "uzum") {
+            const errorMsg = String(err.message || err).toLowerCase();
+            const status = err.status || "";
+            
+            if (errorMsg.includes("api key not valid") || errorMsg.includes("api_key_invalid") || errorMsg.includes("invalid api key")) {
+                return "API kalit (Key) xato yoki noto'g'ri kiritilgan. Tizim avtomatik kalitini ishlatish uchun API kalit maydonchasini bo'sh qoldiring yoki to'g'ri kalit kiriting.";
+            }
+            if (errorMsg.includes("rate limit") || errorMsg.includes("quota exceeded") || errorMsg.includes("429")) {
+                return "Serverda so'rovlar soni me'yoridan oshib ketdi. Iltimos, 10-15 soniya kutib, qaytadan urinib ko'ring (Quota Limit).";
+            }
+            if (errorMsg.includes("failed to fetch") || errorMsg.includes("network") || errorMsg.includes("offline")) {
+                return "Internet aloqasi mavjud emas yoki juda sekin. Tarmoq ulanishini tekshiring va qayta urinib ko'ring.";
+            }
+            if (errorMsg.includes("permission denied") || errorMsg.includes("not-allowed") || errorMsg.includes("mic")) {
+                return "Mikrofondan foydalanish rad etildi. Brauzeringiz yoki mobil telefoningiz sozlamalaridan ushbu saytga mikrofondan foydalanishga ruxsat bering.";
+            }
+            if (errorMsg.includes("audiocontext") || errorMsg.includes("play() failed") || errorMsg.includes("not allowed to play")) {
+                return "Brauzer xavfsizlik cheklovi tufayli ovozni o'qiy olmadi. Davom etish uchun ekranning istalgan joyiga bosing, so'ngra qayta urining.";
+            }
+            
+            return `Tizimda kutilmagan texnik muammo yuz berdi. Tafsilotlar: ${err.message || err}`;
+        }
+
         function getApiUrl(modelName) {
             const manualKey = document.getElementById('api-key').value.trim();
-            // If manual key is empty, fallback to the auto-injected global apiKey parameter
             const activeKey = manualKey || apiKey;
-            // The "?key=" parameter is strictly required for the platform sandbox to inject the active session key
             return `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
         }
 
@@ -600,6 +627,9 @@
 
         async function generateTTS(overrideText = null, overrideVoice = null) {
             stopCurrentAudio();
+            
+            // Unlocks the audio context directly inside the user's action event thread
+            unlockAudio();
             
             const textToSpeech = overrideText || ttsInput.value.trim();
             if (!textToSpeech) {
@@ -660,11 +690,16 @@
                         body: JSON.stringify(payload)
                     });
 
+                    const result = await response.json();
+                    
+                    if (result.error) {
+                        throw new Error(result.error.message || JSON.stringify(result.error));
+                    }
+
                     if (!response.ok) {
                         throw new Error(`Server xatosi: ${response.status}`);
                     }
 
-                    const result = await response.json();
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
                     const audioData = part?.inlineData?.data;
                     const mimeType = part?.inlineData?.mimeType;
@@ -677,7 +712,6 @@
                         }
 
                         const pcmData = base64ToArrayBuffer(audioData);
-                        // Safe array buffer length mapping to avoid RangeErrors on odd-length boundaries
                         const pcm16 = new Int16Array(pcmData, 0, Math.floor(pcmData.byteLength / 2));
                         const wavBlob = pcmToWav(pcm16, sampleRate);
 
@@ -709,19 +743,22 @@
                         document.getElementById('voice-badge').innerText = `${voiceDisplayNames[voiceName] || voiceName} Active`;
                         document.getElementById('visualizer-placeholder').classList.add('hidden');
 
-                        player.play();
+                        player.play().catch(playErr => {
+                            console.warn("Auto-playback was prevented. User needs to tap play button.", playErr);
+                        });
                         updatePlayButtonState(true);
 
                         break; // Success exit loop
                     } else {
-                        throw new Error("Kutilmagan audio formati");
+                        throw new Error("Kutilmagan audio formati qaytdi.");
                     }
 
                 } catch (error) {
                     attempts++;
                     console.warn(`Xatolik yuz berdi (${attempts}/${maxAttempts}). Qaytadan urinish...`, error);
                     if (attempts >= maxAttempts) {
-                        showModalAlert("Ulanish xatoligi", "Sun'iy intellekt ovozlash serveriga ulana olmadi. Tarmoq sozlamalarini tekshiring.");
+                        const uzbekExplanation = translateErrorToUzbek(error);
+                        showModalAlert("Ulanish xatoligi", uzbekExplanation);
                     } else {
                         await new Promise(res => setTimeout(res, delay));
                         delay *= 2;
@@ -749,8 +786,9 @@
         }
 
         function togglePlay() {
+            unlockAudio();
             if (audioPlayer.paused) {
-                audioPlayer.play();
+                audioPlayer.play().catch(e => console.log("Playback failed:", e));
                 updatePlayButtonState(true);
             } else {
                 audioPlayer.pause();
@@ -862,6 +900,7 @@
             const item = audioLibrary.find(i => i.id === id);
             if (!item) return;
             
+            unlockAudio();
             if (generatedAudioUrl) URL.revokeObjectURL(generatedAudioUrl);
             
             const base64Data = item.audioData.split(',')[1];
@@ -880,7 +919,7 @@
             document.getElementById('btn-save-archive').disabled = false;
             document.getElementById('visualizer-placeholder').classList.add('hidden');
             
-            player.play();
+            player.play().catch(e => console.log("Library play error:", e));
             updatePlayButtonState(true);
         }
 
@@ -921,23 +960,39 @@
                     console.error("Speech recognition error:", event.error);
                     isRecognizing = false;
                     document.getElementById('mic-icon').className = "fa-solid fa-microphone text-sm";
+                    const formattedUzErr = translateErrorToUzbek(event.error || "mic");
+                    showModalAlert("Mikrofon xatoligi", formattedUzErr);
                 };
             }
         }
 
-        function toggleSpeechRecognition() {
-            if (!recognition) {
-                initSpeechRecognition();
-            }
-            if (!recognition) {
-                showModalAlert("Qo'llab-quvvatlanmaydi", "Sizning brauzeringiz Speech-to-Text xizmatini qo'llab-quvvatlamaydi. Iltimos Google Chrome yoki Edge brauzeridan foydalaning.");
+        async function toggleSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showModalAlert("Qo'llab-quvvatlanmaydi", "Sizning brauzeringiz Speech-to-Text (ovozli yozish) xizmatini qo'llab-quvvatlamaydi. Iltimos Google Chrome yoki mobil Safari-dan foydalaning.");
                 return;
             }
 
             if (isRecognizing) {
-                recognition.stop();
-            } else {
-                recognition.start();
+                if (recognition) recognition.stop();
+                return;
+            }
+
+            try {
+                // Request microphone access explicitly to trigger system permission prompt
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                if (!recognition) {
+                    initSpeechRecognition();
+                }
+                
+                if (recognition) {
+                    recognition.start();
+                }
+            } catch (err) {
+                console.error("Microphone access failed:", err);
+                const uzError = translateErrorToUzbek(err);
+                showModalAlert("Mikrofon ruxsati", uzError);
             }
         }
 
@@ -960,8 +1015,9 @@
             const userMsg = chatInput.value.trim();
             if (!userMsg) return;
 
-            // Stop any playing audio instantly
+            // Stop any playing audio instantly and unlock context for future plays
             stopCurrentAudio();
+            unlockAudio();
 
             appendChatMessage("SIZ", userMsg, "self-end text-green-400 bg-green-950/20 border border-green-500/30");
             chatInput.value = '';
@@ -981,20 +1037,27 @@
                     })
                 });
 
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error.message || JSON.stringify(result.error));
+                }
+
                 if (!response.ok) throw new Error("AI Chat javob bera olmadi");
 
-                const result = await response.json();
                 const aiResponseText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (aiResponseText) {
                     appendChatMessage("YORDAMCHI", aiResponseText, "self-start text-green-300 bg-black/50 border border-green-900/60", true);
                 } else {
-                    throw new Error("Xato javob shakli");
+                    throw new Error("Xato javob shakli qaytdi.");
                 }
 
             } catch (err) {
                 console.error(err);
-                appendChatMessage("TIZIM XATOLIGI", "Server bilan ulanishda muammo yuz berdi. Tarmoqni tekshiring.", "self-start text-red-400 bg-red-950/20 border border-red-900/40");
+                const translation = translateErrorToUzbek(err);
+                appendChatMessage("XATOLIK", `Ulanishda xato: ${err.message || "Xizmat javob bermadi."}`, "self-start text-red-400 bg-red-950/20 border border-red-900/40");
+                showModalAlert("Suhbat xatoligi", translation);
             } finally {
                 typingIndicator.classList.add('hidden');
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1021,7 +1084,10 @@
                 const btn = document.createElement('button');
                 btn.className = "px-3 py-1.5 bg-green-900/40 hover:bg-green-500 hover:text-black rounded border border-green-800 transition-all text-[9px] flex items-center gap-1 cursor-pointer";
                 btn.innerHTML = `<i class="fa-solid fa-volume-high"></i> Tinglash`;
-                btn.onclick = () => readAloudText(text, btn);
+                btn.onclick = () => {
+                    unlockAudio();
+                    readAloudText(text, btn);
+                };
                 
                 controlDiv.appendChild(btn);
                 msgDiv.appendChild(controlDiv);
